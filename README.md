@@ -34,8 +34,8 @@ This project is a bulk email sender built using Streamlit and LangChain's `ChatG
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/your-username/bulk-email-sender.git
-   cd bulk-email-sender
+   git clone https://github.com/codebytemirza/MY-CLIENT-BOT-AI-MAIL-SENDER.git
+   cd MY-CLIENT-BOT-AI-MAIL-SENDER
    ```
 
 2. **Create a Virtual Environment (Optional but recommended)**
