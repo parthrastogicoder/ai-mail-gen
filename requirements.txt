@@ -1,0 +1,5 @@
+streamlit
+pandas
+smtplib
+python-dotenv
+langchain_groq
