@@ -16,6 +16,7 @@ from_email =st.secrets["env"]["EMAIL_ADDRESS"]
 
 # Initialize the ChatGroq model
 llm = ChatGroq(
+    api_key=api_key,
     model="llama3-8b-8192",
     temperature=0,
     max_tokens=None,
