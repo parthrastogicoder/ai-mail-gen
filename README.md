@@ -147,7 +147,7 @@ You can deploy this application using platforms such as:
 - **Heroku:**  
   1. Create a `Procfile` with the following content:
      ```plaintext
-     web: streamlit run app.py 
+     web: streamlit run MyClient_Bot.py
      ```
   2. Push your changes to Heroku and set your environment variables in the dashboard.
 
@@ -156,7 +156,7 @@ You can deploy this application using platforms such as:
 ## 9. Project Structure
 
 ```
-├── app.py                # Main Streamlit application
+├── MyClient_Bot.py                # Main Streamlit application
 ├── requirements.txt      # List of dependencies
 ├── .env                  # Environment variables (not tracked by Git)
 ├── README.md             # Project documentation
