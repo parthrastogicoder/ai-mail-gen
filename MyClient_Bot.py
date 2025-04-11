@@ -10,9 +10,9 @@ from langchain_groq import ChatGroq
 load_dotenv()
 
 # Environment variables for the AI and email credentials
-api_key = os.getenv("GROQ_API_KEY")
-email_password = os.getenv("EMAIL_PASSWORD")
-from_email = os.getenv("EMAIL_ADDRESS")
+api_key = st.secrets["env"]["GROQ_API_KEY"]
+email_password = st.secrets["env"]["EMAIL_PASSWORD"]
+from_email =st.secrets["env"]["EMAIL_ADDRESS"]
 
 # Initialize the ChatGroq model
 llm = ChatGroq(
