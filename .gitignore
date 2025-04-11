@@ -1,0 +1,36 @@
+# Environment variables file (contains sensitive data)
+.env
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment directories
+venv/
+.env/
+.venv/
+ENV/
+
+# Logs and temporary files
+*.log
+*.tmp
+tmp/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Streamlit specific files (if any)
+.streamlit/
+
+# Build or distribution directories (if applicable)
+build/
+dist/
+*.egg-info/

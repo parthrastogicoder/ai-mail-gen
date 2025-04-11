@@ -4,38 +4,33 @@ import streamlit as st
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
-import pandas as pd
 from langchain_groq import ChatGroq
-import json
 
-# Load environment variables
+# Load environment variables from .env file
 load_dotenv()
 
-# Set your API key from the .env file
+# Environment variables for the AI and email credentials
 api_key = os.getenv("GROQ_API_KEY")
 email_password = os.getenv("EMAIL_PASSWORD")
 from_email = os.getenv("EMAIL_ADDRESS")
 
 # Initialize the ChatGroq model
 llm = ChatGroq(
-    model="llama-3.1-70b-versatile",
+    model="llama3-8b-8192",
     temperature=0,
     max_tokens=None,
     timeout=None,
     max_retries=2
 )
 
-def generate_email_content(name, service):
-    prompt = f"""
-    You are a professional email writer. Write a personalized email for {name} about our {service} service.
-    Highlight how our services in ChatBot Development, RAG (Retrieval Augmented Generation) Development, Python Assignments, and Basic ML tasks can benefit them.
-    Ensure the email is professional, engaging, and client-friendly. No Preamble or Signature. No Markdown. No ``` ```
-    Format the response with the subject on the first line and the body on subsequent lines.
+def generate_email_content(user_prompt):
     """
-
+    This function sends the user prompt to the ChatGroq model to generate 
+    an email consisting of a subject and body.
+    """
     messages = [
         ("system", "You are a professional email writer."),
-        ("human", prompt)
+        ("human", user_prompt)
     ]
 
     ai_msg = llm.invoke(messages)
@@ -44,59 +39,78 @@ def generate_email_content(name, service):
         response_lines = ai_msg.content.strip().split("\n")
         if len(response_lines) < 2:
             raise ValueError("Response does not contain a subject and body.")
-
-        # Ensure no unwanted "Subject:" prefix
+        # Remove any “Subject:” prefix if it exists
         subject = response_lines[0].strip()
         if subject.lower().startswith("subject:"):
             subject = subject[len("subject:"):].strip()
-
         body = "\n".join(response_lines[1:]).strip()
         return subject, body
-    except ValueError as e:
-        print(f"Failed to parse response: {e}")
+    except Exception as e:
+        st.error(f"Failed to parse generated email content: {e}")
         return None, None
 
 def send_email(to_email, subject, body):
-    # Create the email
+    """
+    This function creates a MIME email and sends it using Gmail's SMTP server.
+    """
     msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = to_email
     msg['Subject'] = subject
-
-    # Attach the email body
     msg.attach(MIMEText(body, 'plain'))
 
-    # Connect to Gmail SMTP server and send the email
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(from_email, email_password)
-        text = msg.as_string()
-        server.sendmail(from_email, to_email, text)
-        print(f"Email sent to {to_email}")
+        server.sendmail(from_email, to_email, msg.as_string())
+        st.info(f"Email sent to {to_email}")
     except Exception as e:
-        print(f"Failed to send email: {e}")
+        st.error(f"Failed to send email to {to_email}: {e}")
     finally:
         server.quit()
 
-# Streamlit UI
-st.title("Bulk Email Sender")
-uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+# Streamlit User Interface
+st.title("AI-Generated Email Sender")
 
-if uploaded_file:
-    df = pd.read_csv(uploaded_file)
-    st.write(df)
+# Step 1: Input Recipient(s)
+recipients_input = st.text_input(
+    "Enter recipient email addresses (comma separated):",
+    placeholder="e.g., user1@example.com, user2@example.com"
+)
 
-    if st.button("Send Emails"):
-        for index, row in df.iterrows():
-            client_name = row['Name']
-            client_email = row['Email']
-            client_service = row['Service']
+# Step 2: Input Prompt for Email Generation
+prompt_input = st.text_area(
+    "Enter your prompt for the email generation:",
+    placeholder="For example, write a professional email about our new service offering..."
+)
 
-            email_subject, email_body = generate_email_content(client_name, client_service)
-            if email_subject and email_body:
-                send_email(client_email, email_subject, email_body)
-                st.success(f"Email sent to {client_email}")
-            else:
-                st.error(f"Failed to generate email content for {client_email}")
+# Button to generate email content using AI
+if st.button("Generate Email"):
+    if not prompt_input:
+        st.warning("Please enter a prompt for the email.")
+    else:
+        subject, body = generate_email_content(prompt_input)
+        if subject and body:
+            st.session_state["generated_subject"] = subject
+            st.session_state["generated_body"] = body
+            st.success("Email generated! You can now edit the subject and body below.")
 
+# Step 3: Display editable fields for the generated email
+default_subject = st.session_state.get("generated_subject", "")
+email_subject = st.text_input("Email Subject", default_subject)
+default_body = st.session_state.get("generated_body", "")
+email_body = st.text_area("Email Body", default_body, height=300)
+
+# Step 4: Send Email to the Recipients
+if st.button("Send Email"):
+    if not recipients_input:
+        st.warning("Please enter at least one recipient email address.")
+    elif not email_subject or not email_body:
+        st.warning("Email subject and body cannot be empty.")
+    else:
+        # Split the input into a list of recipient email addresses
+        recipients = [email.strip() for email in recipients_input.split(",") if email.strip()]
+        for recipient in recipients:
+            send_email(recipient, email_subject, email_body)
+        st.success("Email sent successfully to all recipients!")
